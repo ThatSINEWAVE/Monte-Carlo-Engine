@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parameter Simulation Engine</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <div class="container">
+      <div class="app-header">
+        <h1>Parameter Simulation Engine</h1>
+        <p class="app-description"> Simulate and analyze outcomes based on multiple parameters with customizable ranges and weights. Discover the most likely scenarios and understand parameter interactions. </p>
+      </div>
+      <div class="card">
+        <h2>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+          </svg> Input Parameters
+        </h2>
+        <div class="help-text"> Define the parameters for your simulation below. Each parameter should have a name, minimum and maximum values, and a weight (1-10) indicating its relative importance. Higher weights make a parameter more influential in the results. </div>
+        <div class="parameter-row-header">
+          <div class="header-cell">Parameter Name</div>
+          <div class="header-cell">Min Value</div>
+          <div class="header-cell">Max Value</div>
+          <div class="header-cell">Weight (1-10)</div>
+          <div class="header-cell"></div>
+        </div>
+        <div id="parameters-container">
+          <!-- Parameter rows will be added here -->
+        </div>
+        <div class="action-buttons">
+          <button id="add-parameter" class="btn-secondary">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg> Add Parameter </button>
+        </div>
+      </div>
+      <div class="card">
+        <h2>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 20V10"></path>
+            <path d="M18 20V4"></path>
+            <path d="M6 20v-4"></path>
+          </svg> Simulation Settings
+        </h2>
+        <div class="help-text"> Specify how many iterations to run. More iterations produce more statistically reliable results but may take longer to calculate. A good starting point is 1,000 iterations. </div>
+        <div class="simulation-controls">
+          <div>
+            <label for="iterations">Simulation Iterations:</label>
+            <div class="input-group">
+              <input type="number" id="iterations" min="100" max="10000" step="100" value="1000">
+              <span class="tooltip">
+                <span class="tooltip-icon">?</span>
+                <span class="tooltip-text">More iterations provide more accurate results but may take longer to calculate.</span>
+              </span>
+            </div>
+          </div>
+          <button id="run-simulation" class="run-btn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M5 3v18l14-9z"></path>
+            </svg> Run Simulation </button>
+        </div>
+      </div>
+      <div class="card">
+        <h2>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+            <polyline points="2 17 12 22 22 17"></polyline>
+            <polyline points="2 12 12 17 22 12"></polyline>
+          </svg> Simulation Results
+        </h2>
+        <div class="help-text"> After running the simulation, the most likely outcomes will be displayed below. The left panel shows a detailed list of outcomes with probabilities, while the right panel displays a visual representation of the top outcomes. </div>
+        <div class="results-container">
+          <div class="results-panel">
+            <div class="panel-header">Detailed Outcomes</div>
+            <div class="panel-body">
+              <div id="results-list">
+                <div class="empty-state">
+                  <svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
+                    <polyline points="13 2 13 9 20 9"></polyline>
+                  </svg>
+                  <div class="empty-state-text">No Results Yet</div>
+                  <div class="empty-state-subtext">Configure your parameters and run the simulation to see results.</div>
+                </div>
+              </div>
+              <div class="loading">
+                <div class="spinner"></div>
+                <div>Calculating outcomes...</div>
+              </div>
+            </div>
+          </div>
+          <div class="results-panel">
+            <div class="panel-header">Probability Distribution</div>
+            <div class="panel-body">
+              <div id="results-chart">
+                <div class="empty-state">
+                  <svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="20" x2="18" y2="10"></line>
+                    <line x1="12" y1="20" x2="12" y2="4"></line>
+                    <line x1="6" y1="20" x2="6" y2="14"></line>
+                    <line x1="3" y1="20" x2="21" y2="20"></line>
+                  </svg>
+                  <div class="empty-state-text">Visualization Ready</div>
+                  <div class="empty-state-subtext">Run the simulation to see the probability distribution chart.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="parameter-analysis">
+            <div class="panel-header">Parameter Winners Analysis</div>
+            <div class="panel-body">
+              <div id="parameter-pie-chart">
+                <div class="empty-state">
+                  <svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polyline points="8 12 12 16 16 12"></polyline>
+                    <line x1="12" y1="8" x2="12" y2="16"></line>
+                  </svg>
+                  <div class="empty-state-text">Parameter Analysis Ready</div>
+                  <div class="empty-state-subtext">Run the simulation to see which parameters have the highest average values.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script src="script.js"></script>
+  </body>
+</html>
