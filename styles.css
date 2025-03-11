@@ -483,7 +483,6 @@ button:active {
   overflow: hidden;
   box-shadow: var(--card-shadow);
   border: 1px solid var(--border);
-  margin-top: 24px;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   grid-column: 1 / -1;
 }
@@ -496,13 +495,14 @@ button:active {
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-top: 20px;
 }
 
 .pie-chart-svg {
   width: 300px;
   height: 300px;
   filter: drop-shadow(0px 4px 8px rgba(0, 0, 0, 0.1));
+  margin-top: -35px;
+  margin-bottom: -35px;
 }
 
 .pie-slice {
@@ -518,7 +518,6 @@ button:active {
 
 .winner-info-container {
   text-align: center;
-  margin-bottom: 20px;
   padding: 16px;
   background-color: var(--primary-lighter);
   border-radius: var(--radius-sm);
@@ -531,14 +530,12 @@ button:active {
   font-size: 14px;
   font-weight: 600;
   color: var(--medium-text);
-  margin-bottom: 4px;
 }
 
 .winner-name {
   font-size: 22px;
   font-weight: 700;
   color: var(--dark-text);
-  margin-bottom: 4px;
 }
 
 .winner-value {
@@ -551,8 +548,6 @@ button:active {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 16px;
-  margin-top: 24px;
   max-width: 600px;
 }
 
@@ -560,7 +555,6 @@ button:active {
   display: flex;
   align-items: center;
   font-size: 0.9rem;
-  margin-bottom: 8px;
   padding: 6px 12px;
   background-color: var(--light-bg);
   border-radius: var(--radius-sm);
