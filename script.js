@@ -342,6 +342,20 @@ document.addEventListener('DOMContentLoaded', () => {
         const pieChart = document.getElementById('parameter-pie-chart');
         pieChart.innerHTML = '';
 
+        // Create winner info container first (above the pie chart)
+        if (parameterAverages.length > 0) {
+            const winner = parameterAverages[0];
+
+            // Get the winner info element
+            const winnerInfo = document.getElementById('winner-info');
+            winnerInfo.style.display = 'flex';
+            winnerInfo.innerHTML = `
+                <div class="winner-label">Winner</div>
+                <div class="winner-name">${winner.parameter}</div>
+                <div class="winner-value">${winner.average} (${winner.percentage}%)</div>
+            `;
+        }
+
         // Create SVG element
         const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
         svg.setAttribute('viewBox', '0 0 300 300');
@@ -414,36 +428,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
             startAngle = endAngle;
         });
-
-        // Add winner indicator at the center of pie chart
-        if (parameterAverages.length > 0) {
-            const winner = parameterAverages[0];
-
-            const winnerText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-            winnerText.setAttribute('x', centerX);
-            winnerText.setAttribute('y', centerY - 10);
-            winnerText.setAttribute('text-anchor', 'middle');
-            winnerText.setAttribute('class', 'winner-label');
-            winnerText.textContent = 'Winner';
-
-            const winnerName = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-            winnerName.setAttribute('x', centerX);
-            winnerName.setAttribute('y', centerY + 15);
-            winnerName.setAttribute('text-anchor', 'middle');
-            winnerName.setAttribute('class', 'winner-name');
-            winnerName.textContent = winner.parameter;
-
-            const winnerValue = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-            winnerValue.setAttribute('x', centerX);
-            winnerValue.setAttribute('y', centerY + 40);
-            winnerValue.setAttribute('text-anchor', 'middle');
-            winnerValue.setAttribute('class', 'winner-value');
-            winnerValue.textContent = `${winner.average} (${winner.percentage}%)`;
-
-            svg.appendChild(winnerText);
-            svg.appendChild(winnerName);
-            svg.appendChild(winnerValue);
-        }
 
         pieChart.appendChild(svg);
         pieChart.appendChild(legend);
