@@ -82,9 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 outcomes[outcomeKey] = {
                     count: 1,
-                    values: {
-                        ...result
-                    }
+                    values: { ...result }
                 };
             }
         }
@@ -107,7 +105,8 @@ document.addEventListener('DOMContentLoaded', () => {
         // Calculate interaction effects between parameters
         const interactionMatrix = calculateInteractionMatrix(parameters);
 
-        return outcomes.map(outcome => {
+        // Apply interactions to each outcome
+        const modifiedOutcomes = outcomes.map(outcome => {
             let interactionFactor = 1.0;
             const values = outcome.values;
 
@@ -119,12 +118,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     const value1 = values[param1.name];
                     const value2 = values[param2.name];
 
+                    // Check for valid ranges to avoid division by zero
+                    if (param1.max === param1.min || param2.max === param2.min) {
+                        continue;
+                    }
+
                     // Normalized positions within parameter ranges
                     const normalizedPos1 = (value1 - param1.min) / (param1.max - param1.min);
                     const normalizedPos2 = (value2 - param2.min) / (param2.max - param2.min);
 
-                    // Calculate interaction effect (this is a simple example)
-                    // The closer the parameters are to their extremes, the stronger the interaction
+                    // Calculate interaction effect
                     const interaction = interactionMatrix[i][j] *
                         Math.abs(normalizedPos1 - 0.5) *
                         Math.abs(normalizedPos2 - 0.5);
@@ -133,15 +136,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
+            // Ensure interaction factor doesn't go below a reasonable minimum
+            interactionFactor = Math.max(0.1, interactionFactor);
+
             // Apply the interaction factor to the probability
-            const newProbability = outcome.probability * interactionFactor;
             return {
                 ...outcome,
-                probability: newProbability,
+                probability: outcome.probability * interactionFactor,
                 originalProbability: outcome.probability,
                 interactionFactor
             };
         });
+
+        return modifiedOutcomes;
     }
 
     function calculateInteractionMatrix(parameters) {
@@ -154,10 +161,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (i === j) {
                     matrix[i][j] = 0; // No self-interaction
                 } else {
-                    // Simple weight-based interaction (could be more complex)
-                    // Values between -0.2 and 0.2 for subtle effects
-                    const weightFactor = (parameters[i].weight + parameters[j].weight) / 20;
-                    matrix[i][j] = (Math.random() * 0.4 - 0.2) * weightFactor;
+                    // More deterministic interaction based on weights
+                    // Higher weights increase the likelihood of positive interactions
+                    const weightSum = parameters[i].weight + parameters[j].weight;
+                    const weightDiff = Math.abs(parameters[i].weight - parameters[j].weight);
+
+                    // Generate a seeded random value based on parameter weights
+                    const seed = (parameters[i].weight * 17 + parameters[j].weight * 31) % 100 / 100;
+                    const randomFactor = Math.sin(seed * Math.PI) * 0.2; // Between -0.2 and 0.2
+
+                    // Similar weights create positive interactions, different weights negative
+                    const baseInteraction = (10 - weightDiff) / 10 * 0.2 - 0.1;
+                    matrix[i][j] = baseInteraction + randomFactor;
                 }
             }
         }
@@ -166,9 +181,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function normalizeOutcomeProbabilities(outcomes) {
-        // After applying interactions, we need to normalize probabilities to sum to 1
+        // Calculate total probability after interactions
         const totalProbability = outcomes.reduce((sum, outcome) => sum + outcome.probability, 0);
 
+        // Avoid division by zero
+        if (totalProbability === 0) {
+            return outcomes.map(outcome => ({
+                ...outcome,
+                probability: 1 / outcomes.length
+            }));
+        }
+
+        // Normalize all probabilities to sum to 1
         return outcomes.map(outcome => ({
             ...outcome,
             probability: outcome.probability / totalProbability
@@ -178,6 +202,12 @@ document.addEventListener('DOMContentLoaded', () => {
     function displayResults(sortedOutcomes) {
         resultsList.innerHTML = '';
         resultsChart.innerHTML = '';
+
+        // Check if we have outcomes to display
+        if (sortedOutcomes.length === 0) {
+            resultsList.innerHTML = '<div class="no-results">No outcomes generated. Try adjusting parameters.</div>';
+            return;
+        }
 
         // Show top 20 outcomes in the list view
         const topOutcomes = sortedOutcomes.slice(0, 20);
@@ -216,13 +246,20 @@ document.addEventListener('DOMContentLoaded', () => {
             resultsList.appendChild(outcomeItem);
         });
 
-        // Display top 10 outcomes in the chart
-        createBarChart(topOutcomes.slice(0, 10));
+        // Display chart only if we have outcomes
+        if (topOutcomes.length > 0) {
+            createBarChart(topOutcomes.slice(0, 10));
+        }
     }
 
     function createBarChart(outcomes) {
+        if (outcomes.length === 0) return;
+
         // Find max probability for scaling
-        const maxProbability = outcomes[0].probability;
+        const maxProbability = Math.max(...outcomes.map(o => o.probability));
+
+        // Handle edge case where all probabilities are 0
+        if (maxProbability <= 0) return;
 
         outcomes.forEach((outcome, index) => {
             const chartBar = document.createElement('div');
@@ -261,21 +298,28 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function calculateParameterSensitivity(parameters, iterations) {
+        // Create a copy of parameters to avoid modifying the original
+        const parametersCopy = parameters.map(p => ({ ...p }));
+
         // Calculate how sensitive the outcomes are to each parameter
         const sensitivities = {};
-        const baseOutcomes = generateOutcomes(parameters, iterations);
+        const baseOutcomes = generateOutcomes(parametersCopy, iterations);
 
         // For each parameter, vary it slightly and see how much outcomes change
-        parameters.forEach(param => {
+        parametersCopy.forEach((param, index) => {
             const originalMin = param.min;
             const originalMax = param.max;
 
             // Create a modified parameter set with this parameter varied
             const range = originalMax - originalMin;
-            param.min = Math.max(0, originalMin - range * 0.1);
-            param.max = originalMax + range * 0.1;
 
-            const variedOutcomes = generateOutcomes(parameters, iterations);
+            // Handle special case where range is 0
+            const variationAmount = range === 0 ? 1 : range * 0.1;
+
+            param.min = Math.max(0, originalMin - variationAmount);
+            param.max = originalMax + variationAmount;
+
+            const variedOutcomes = generateOutcomes(parametersCopy, iterations);
 
             // Calculate difference in outcome distributions
             let totalDifference = 0;
@@ -300,6 +344,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function calculateParameterAverages(outcomes) {
+        if (outcomes.length === 0) return [];
+
         // Initialize sum and count for each parameter
         const paramSums = {};
         const paramCounts = {};
@@ -319,6 +365,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 totalSum += value * outcome.probability;
             });
         });
+
+        // Handle edge case where totalSum is 0
+        if (totalSum === 0) totalSum = 1;
 
         // Calculate averages and prepare data for the pie chart
         const averages = [];
@@ -340,20 +389,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function createPieChart(parameterAverages) {
         const pieChart = document.getElementById('parameter-pie-chart');
+        if (!pieChart) return; // Guard against missing element
+
         pieChart.innerHTML = '';
+
+        // Get the winner info element
+        const winnerInfo = document.getElementById('winner-info');
+        if (!winnerInfo) return; // Guard against missing element
 
         // Create winner info container first (above the pie chart)
         if (parameterAverages.length > 0) {
             const winner = parameterAverages[0];
-
-            // Get the winner info element
-            const winnerInfo = document.getElementById('winner-info');
             winnerInfo.style.display = 'flex';
             winnerInfo.innerHTML = `
                 <div class="winner-label">Winner</div>
                 <div class="winner-name">${winner.parameter}</div>
                 <div class="winner-value">${winner.average} (${winner.percentage}%)</div>
             `;
+        } else {
+            winnerInfo.style.display = 'none';
+            return; // No data to display in pie chart
         }
 
         // Create SVG element
@@ -374,12 +429,21 @@ document.addEventListener('DOMContentLoaded', () => {
         let startAngle = 0;
         const total = parameterAverages.reduce((sum, param) => sum + parseFloat(param.percentage), 0);
 
+        // Handle case where total is 0
+        if (total <= 0) {
+            pieChart.innerHTML = '<div class="no-results">Insufficient data for pie chart</div>';
+            return;
+        }
+
         // Create pie slices
         const legend = document.createElement('div');
         legend.className = 'pie-chart-legend';
 
         parameterAverages.forEach((param, index) => {
             const percentage = parseFloat(param.percentage);
+            // Skip parameters with 0 percentage
+            if (percentage <= 0) return;
+
             const angleSize = (percentage / total) * 360;
             const endAngle = startAngle + angleSize;
 
@@ -434,6 +498,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function runSimulation() {
+        // Show loading indicator (if you have one)
+        // loadingIndicator.style.display = 'block';
+
         const parameters = collectParameters();
         const iterations = parseInt(iterationsInput.value) || 1000;
 
@@ -449,27 +516,41 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // Run the basic simulation
-        let outcomes = generateOutcomes(parameters, iterations);
+        // Use setTimeout to allow browser to update UI before heavy computation
+        setTimeout(() => {
+            try {
+                // Run the basic simulation
+                let outcomes = generateOutcomes(parameters, iterations);
 
-        // Apply parameter interactions
-        if (parameters.length > 1) {
-            outcomes = applyParameterInteractions(outcomes, parameters);
-            outcomes = normalizeOutcomeProbabilities(outcomes);
-        }
+                // Apply parameter interactions
+                if (parameters.length > 1) {
+                    outcomes = applyParameterInteractions(outcomes, parameters);
+                    outcomes = normalizeOutcomeProbabilities(outcomes);
+                }
 
-        // Sort again after interactions
-        outcomes.sort((a, b) => b.probability - a.probability);
+                // Sort again after interactions
+                outcomes.sort((a, b) => b.probability - a.probability);
 
-        // Display results
-        displayResults(outcomes);
+                // Display results
+                displayResults(outcomes);
 
-        // Calculate parameter averages and create pie chart
-        const parameterAverages = calculateParameterAverages(outcomes);
-        createPieChart(parameterAverages);
+                // Calculate parameter averages and create pie chart
+                const parameterAverages = calculateParameterAverages(outcomes);
+                createPieChart(parameterAverages);
 
-        // Calculate sensitivities (could be displayed in a future version)
-        const sensitivities = calculateParameterSensitivity(parameters, Math.min(iterations, 500));
-        console.log('Parameter Sensitivities:', sensitivities);
+                // Calculate sensitivities (could be displayed in a future version)
+                const sensitivities = calculateParameterSensitivity(parameters, Math.min(iterations, 500));
+                console.log('Parameter Sensitivities:', sensitivities);
+
+                // Hide loading indicator (if you have one)
+                // loadingIndicator.style.display = 'none';
+            } catch (error) {
+                console.error('Simulation error:', error);
+                alert('An error occurred during simulation. Please check your parameters and try again.');
+
+                // Hide loading indicator (if you have one)
+                // loadingIndicator.style.display = 'none';
+            }
+        }, 50); // Small delay to allow UI update
     }
 });
