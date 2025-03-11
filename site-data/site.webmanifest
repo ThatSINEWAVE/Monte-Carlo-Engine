@@ -1,0 +1,26 @@
+{
+  "name": "Monte-Carlo-Engine by ThatSINEWAVE_",
+  "description": "This simulator uses the Monte Carlo mathematical technique to predict outcomes by running multiple randomized simulations.",
+  "short_name": "PredictionEngine",
+  "start_url": "/Monte-Carlo-Engine",
+  "orientation": "portrait",
+  "lang": "en-US",
+  "icons": [
+    {
+      "src": "site-data/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "site-data/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "site-data/icon-144x144.png",
+      "sizes": "144x144",
+      "type": "image/png"
+    }
+  ]
+}
