@@ -371,8 +371,11 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // Find max probability for scaling
-        const maxProbability = Math.max(...outcomes.map(o => o.probability));
+        // Clear previous chart
+        resultsChart.innerHTML = '';
+
+        // Find max probability for scaling (use first outcome since they are sorted)
+        const maxProbability = outcomes[0].probability;
         console.log(`Max probability for scaling: ${(maxProbability * 100).toFixed(2)}%`);
 
         // Handle edge case where all probabilities are 0
@@ -381,9 +384,36 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
+        // Find the parameters used across all outcomes to maintain consistent colors
+        const allParameters = new Set();
+        outcomes.forEach(outcome => {
+            Object.keys(outcome.values).forEach(param => {
+                allParameters.add(param);
+            });
+        });
+
+        // Create a color map for consistent coloring
+        const paramColors = {};
+        const colorPalette = [
+            '#4285F4', '#EA4335', '#FBBC05', '#34A853', // Google colors
+            '#3B5998', '#8B9DC3', '#DFE3EE', '#F7F7F7', // Facebook colors
+            '#1DA1F2', '#AAB8C2', '#E1E8ED', '#FFFFFF', // Twitter colors
+            '#FF6900', '#FCB900', '#7BDCB5', '#00D084', // WordPress colors
+            '#8ED1FC', '#0693E3', '#ABB8C3', '#EB144C' // More colors
+        ];
+
+        Array.from(allParameters).forEach((param, index) => {
+            paramColors[param] = colorPalette[index % colorPalette.length];
+        });
+
         outcomes.forEach((outcome, index) => {
             const chartBar = document.createElement('div');
             chartBar.className = 'chart-bar';
+
+            // Create a full label with all parameters for tooltip
+            const fullLabel = Object.entries(outcome.values)
+                .map(([key, value]) => `${key}: ${value}`)
+                .join(', ');
 
             // Create a simple label from parameter values
             let label = '';
@@ -407,18 +437,65 @@ document.addEventListener('DOMContentLoaded', () => {
             const widthPercentage = (outcome.probability / maxProbability) * 100;
             const probabilityPercent = (outcome.probability * 100).toFixed(2);
 
-            console.log(`Bar ${index + 1}: ${label} - ${probabilityPercent}% (width: ${widthPercentage.toFixed(2)}%)`);
+            console.log(`Bar ${index + 1}: ${fullLabel} - ${probabilityPercent}% (width: ${widthPercentage.toFixed(2)}%)`);
 
+            // Calculate the total value of all parameters for proportional segments
+            const totalValue = Object.values(outcome.values).reduce((sum, val) => sum + Number(val), 0);
+
+            // Create the bar container
             chartBar.innerHTML = `
-                <div class="bar-label" title="${label}">${label}</div>
-                <div class="bar-fill" style="width: ${widthPercentage}%"></div>
+                <div class="bar-label" title="${fullLabel}">${label}</div>
+                <div class="bar-container">
+                    <div class="bar-fill" style="width: ${widthPercentage}%"></div>
+                </div>
                 <div class="bar-value">${probabilityPercent}%</div>
             `;
+
+            // Get the bar-fill element
+            const barFill = chartBar.querySelector('.bar-fill');
+
+            // Clear the bar fill and add segments
+            barFill.innerHTML = '';
+
+            // Add segments for each parameter
+            let currentOffset = 0;
+
+            entries.forEach(([key, value]) => {
+                const paramValue = Number(value);
+                if (paramValue <= 0 || totalValue <= 0) return; // Skip zero or negative values
+
+                const segmentPercentage = (paramValue / totalValue) * 100;
+                const segment = document.createElement('div');
+                segment.className = 'bar-segment';
+                segment.style.width = `${segmentPercentage}%`;
+                segment.style.backgroundColor = paramColors[key];
+                segment.style.left = `${currentOffset}%`;
+                segment.title = `${key}: ${value} (${segmentPercentage.toFixed(1)}%)`;
+
+                currentOffset += segmentPercentage;
+                barFill.appendChild(segment);
+            });
 
             resultsChart.appendChild(chartBar);
         });
 
-        console.log('Bar chart created');
+        // Add a legend for parameter colors
+        const legend = document.createElement('div');
+        legend.className = 'chart-legend';
+
+        Array.from(allParameters).forEach(param => {
+            const legendItem = document.createElement('div');
+            legendItem.className = 'legend-item';
+            legendItem.innerHTML = `
+                <span class="legend-color" style="background-color: ${paramColors[param]}"></span>
+                <span class="legend-label">${param}</span>
+            `;
+            legend.appendChild(legendItem);
+        });
+
+        resultsChart.appendChild(legend);
+
+        console.log('Segmented bar chart created with legend');
     }
 
     function calculateParameterSensitivity(parameters, iterations) {
