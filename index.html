@@ -3,15 +3,15 @@
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Parameter Simulation Engine</title>
+    <title>Monte Carlo Engine</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
     <link rel="stylesheet" href="styles.css">
   </head>
   <body>
     <div class="container">
       <div class="app-header">
-        <h1>Parameter Simulation Engine</h1>
-        <p class="app-description"> Simulate and analyze outcomes based on multiple parameters with customizable ranges and weights. Discover the most likely scenarios and understand parameter interactions. </p>
+        <h1>Monte Carlo Engine</h1>
+        <p class="app-description"> This simulator uses the Monte Carlo mathematical technique to predict outcomes by running multiple randomized simulations. Adjust parameters, set customizable ranges and weights, and analyze the most likely scenarios while understanding complex parameter interactions. </p>
       </div>
       <div class="card">
         <h2>
@@ -20,7 +20,7 @@
             <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
           </svg> Input Parameters
         </h2>
-        <div class="help-text"> Define the parameters for your simulation below. Each parameter should have a name, minimum and maximum values, and a weight (1-10) indicating its relative importance. Higher weights make a parameter more influential in the results. </div>
+        <div class="help-text"> Define the key variables for your simulation. Each parameter requires a name, a range (minimum and maximum values), and a weight (1-10) that determines its impact on the outcome. Higher weights indicate greater influence. </div>
         <div class="parameter-row-header">
           <div class="header-cell">Parameter Name</div>
           <div class="header-cell">Min Value</div>
@@ -47,7 +47,7 @@
             <path d="M6 20v-4"></path>
           </svg> Simulation Settings
         </h2>
-        <div class="help-text"> Specify how many iterations to run. More iterations produce more statistically reliable results but may take longer to calculate. A good starting point is 1,000 iterations. </div>
+        <div class="help-text"> Choose the number of simulation iterations. More iterations increase accuracy but may require additional computation time. A good balance is 1,000 to 10,000 iterations, depending on the complexity of the model. </div>
         <div class="simulation-controls">
           <div>
             <label for="iterations">Simulation Iterations:</label>
@@ -73,7 +73,7 @@
             <polyline points="2 12 12 17 22 12"></polyline>
           </svg> Simulation Results
         </h2>
-        <div class="help-text"> After running the simulation, the most likely outcomes will be displayed below. The left panel shows a detailed list of outcomes with probabilities, while the right panel displays a visual representation of the top outcomes. </div>
+        <div class="help-text"> Once the simulation is complete, the results will be displayed below. The left panel provides detailed outcome probabilities, while the right panel visualizes probability distributions to help you interpret trends effectively. </div>
         <div class="results-container">
           <div class="results-panel">
             <div class="panel-header">Detailed Outcomes</div>
@@ -85,7 +85,7 @@
                     <polyline points="13 2 13 9 20 9"></polyline>
                   </svg>
                   <div class="empty-state-text">No Results Yet</div>
-                  <div class="empty-state-subtext">Configure your parameters and run the simulation to see results.</div>
+                  <div class="empty-state-subtext">Set up your parameters and run a simulation to generate meaningful insights.</div>
                 </div>
               </div>
               <div class="loading">
@@ -106,7 +106,7 @@
                     <line x1="3" y1="20" x2="21" y2="20"></line>
                   </svg>
                   <div class="empty-state-text">Visualization Ready</div>
-                  <div class="empty-state-subtext">Run the simulation to see the probability distribution chart.</div>
+                  <div class="empty-state-subtext">Execute a simulation to view the probability and likelihood of different outcomes.</div>
                 </div>
               </div>
             </div>
@@ -126,7 +126,7 @@
                     <line x1="12" y1="8" x2="12" y2="16"></line>
                   </svg>
                   <div class="empty-state-text">Parameter Analysis Ready</div>
-                  <div class="empty-state-subtext">Run the simulation to see which parameters have the highest average values.</div>
+                  <div class="empty-state-subtext">Run the simulation to determine which parameters contribute most significantly to the final results.</div>
                 </div>
               </div>
             </div>
